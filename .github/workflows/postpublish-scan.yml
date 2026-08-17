@@ -1,0 +1,17 @@
+name: Post-publish security scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Scan published package
+        run: |
+          result=$(npx --yes @n8n/scan-community-package@0.32.0 n8n-nodes-minds)
+          printf '%s\n' "$result"
+          printf '%s\n' "$result" | grep -q 'passed security checks'
