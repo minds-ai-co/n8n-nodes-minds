@@ -36,7 +36,9 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "examples",
+    "PUBLISHING.md"
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,

@@ -1,49 +1,49 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-const panelResource = {
-	resource: ['panel'],
+const studyResource = {
+	resource: ['study'],
 };
 
-const createPanel = {
+const createStudy = {
 	operation: ['create'],
-	resource: ['panel'],
+	resource: ['study'],
 };
 
-const getPanel = {
+const getStudy = {
 	operation: ['get'],
-	resource: ['panel'],
+	resource: ['study'],
 };
 
-const getManyPanels = {
+const getManyStudies = {
 	operation: ['getAll'],
-	resource: ['panel'],
+	resource: ['study'],
 };
 
-const getPanelSummary = {
+const getStudySummary = {
 	operation: ['getSummary'],
-	resource: ['panel'],
+	resource: ['study'],
 };
 
 const previewResearchPlan = {
 	operation: ['previewResearchPlan'],
-	resource: ['panel'],
+	resource: ['study'],
 };
 
-export const panelDescription: INodeProperties[] = [
+export const studyDescription: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
-		displayOptions: { show: panelResource },
+		displayOptions: { show: studyResource },
 		options: [
 			{
 				name: 'Create',
 				value: 'create',
-				action: 'Create a panel',
-				description: 'Create a Panel and optionally attach existing Groups',
+				action: 'Create a study',
+				description: 'Create a Study and optionally attach existing Audiences',
 				routing: {
-					request: { method: 'POST', url: '/panels' },
+					request: { method: 'POST', url: '/studies' },
 					output: {
 						postReceive: [{ type: 'rootProperty', properties: { property: 'data' } }],
 					},
@@ -52,10 +52,10 @@ export const panelDescription: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				action: 'Get a panel',
-				description: 'Get one Panel with its Groups, Minds, and messages',
+				action: 'Get a study',
+				description: 'Get one Study with its Audiences, Minds, and messages',
 				routing: {
-					request: { method: 'GET', url: '=/panels/{{$parameter.panelId}}' },
+					request: { method: 'GET', url: '=/studies/{{encodeURIComponent($parameter.studyId)}}' },
 					output: {
 						postReceive: [{ type: 'rootProperty', properties: { property: 'data' } }],
 					},
@@ -64,10 +64,10 @@ export const panelDescription: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				action: 'Get many panels',
-				description: 'List Panels available to the authenticated account',
+				action: 'Get many studies',
+				description: 'List Studies available to the authenticated account',
 				routing: {
-					request: { method: 'GET', url: '/panels' },
+					request: { method: 'GET', url: '/studies' },
 					output: {
 						postReceive: [{ type: 'rootProperty', properties: { property: 'data' } }],
 					},
@@ -76,12 +76,12 @@ export const panelDescription: INodeProperties[] = [
 			{
 				name: 'Get Summary',
 				value: 'getSummary',
-				action: 'Get a panel summary',
+				action: 'Get a study summary',
 				description: 'Get the persisted whole-study summary and semantic output blocks',
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/panels/{{$parameter.panelId}}/summary',
+						url: '=/studies/{{encodeURIComponent($parameter.studyId)}}/summary',
 					},
 					output: {
 						postReceive: [{ type: 'rootProperty', properties: { property: 'data' } }],
@@ -91,12 +91,12 @@ export const panelDescription: INodeProperties[] = [
 			{
 				name: 'Preview Research Plan',
 				value: 'previewResearchPlan',
-				action: 'Preview a panel research plan',
-				description: 'Create or revise a saved research plan draft without running it',
+				action: 'Preview a study research plan',
+				description: 'Create a saved research plan draft without running it',
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/panels/{{$parameter.panelId}}/research-plans/preview',
+						url: '=/studies/{{encodeURIComponent($parameter.studyId)}}/research-plans/preview',
 					},
 					output: {
 						postReceive: [{ type: 'rootProperty', properties: { property: 'data' } }],
@@ -113,22 +113,22 @@ export const panelDescription: INodeProperties[] = [
 		required: true,
 		default: '',
 		placeholder: 'e.g. Homepage positioning review',
-		description: 'Name of the new Panel',
-		displayOptions: { show: createPanel },
+		description: 'Name of the new Study',
+		displayOptions: { show: createStudy },
 		routing: { send: { type: 'body', property: 'name' } },
 	},
 	{
-		displayName: 'Group IDs',
-		name: 'groupIds',
+		displayName: 'Audience IDs',
+		name: 'audienceIds',
 		type: 'string',
 		default: '',
 		placeholder: 'UUID, UUID',
-		description: 'Comma-separated IDs of existing Minds Groups to attach',
-		displayOptions: { show: createPanel },
+		description: 'Comma-separated IDs of existing Minds Audiences to attach',
+		displayOptions: { show: createStudy },
 		routing: {
 			send: {
 				type: 'body',
-				property: 'groupIds',
+				property: 'audienceIds',
 				value:
 					'={{ $value ? $value.split(",").map((id) => id.trim()).filter((id) => id.length > 0) : [] }}',
 			},
@@ -139,21 +139,21 @@ export const panelDescription: INodeProperties[] = [
 		name: 'isLinkSharingEnabled',
 		type: 'boolean',
 		default: false,
-		description: 'Whether to enable public link sharing for the Panel and its attached Groups',
-		displayOptions: { show: createPanel },
+		description: 'Whether to enable public link sharing for the Study and its attached Audiences',
+		displayOptions: { show: createStudy },
 		routing: { send: { type: 'body', property: 'isLinkSharingEnabled' } },
 	},
 	{
-		displayName: 'Panel ID',
-		name: 'panelId',
+		displayName: 'Study ID',
+		name: 'studyId',
 		type: 'string',
 		required: true,
 		default: '',
-		description: 'UUID of the existing Minds Panel',
+		description: 'UUID of the existing Minds Study',
 		displayOptions: {
 			show: {
 				operation: ['get', 'getSummary', 'previewResearchPlan'],
-				resource: ['panel'],
+				resource: ['study'],
 			},
 		},
 	},
@@ -163,7 +163,7 @@ export const panelDescription: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		description: 'Whether to return all results or only up to a given limit',
-		displayOptions: { show: getManyPanels },
+		displayOptions: { show: getManyStudies },
 		routing: {
 			send: { paginate: '={{$value}}' },
 			operations: {
@@ -188,7 +188,7 @@ export const panelDescription: INodeProperties[] = [
 		description: 'Max number of results to return',
 		displayOptions: {
 			show: {
-				...getManyPanels,
+				...getManyStudies,
 				returnAll: [false],
 			},
 		},
@@ -311,10 +311,10 @@ export const panelDescription: INodeProperties[] = [
 	},
 ];
 
-export const panelOperationDisplayOptions = {
-	createPanel,
-	getManyPanels,
-	getPanel,
-	getPanelSummary,
+export const studyOperationDisplayOptions = {
+	createStudy,
+	getManyStudies,
+	getStudy,
+	getStudySummary,
 	previewResearchPlan,
 };

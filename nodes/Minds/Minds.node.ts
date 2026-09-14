@@ -1,5 +1,5 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
-import { panelDescription } from './resources/panel';
+import { studyDescription } from './resources/study';
 
 export class Minds implements INodeType {
 	description: INodeTypeDescription = {
@@ -30,10 +30,10 @@ export class Minds implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-				options: [{ name: 'Panel', value: 'panel' }],
-				default: 'panel',
+				options: [{ name: 'Study', value: 'study' }],
+				default: 'study',
 			},
-			...panelDescription,
+			...studyDescription,
 		],
 	};
 }

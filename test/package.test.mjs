@@ -15,7 +15,7 @@ test('package exports one strict Minds node and one credential', async () => {
 	assert.deepEqual(packageJson.n8n.credentials, ['dist/credentials/MindsApi.credentials.js']);
 });
 
-test('compiled node exposes only the five bounded Panel operations', () => {
+test('compiled node exposes only the five bounded Study operations', () => {
 	const { Minds } = require('../dist/nodes/Minds/Minds.node.js');
 	const node = new Minds();
 	const operation = node.description.properties.find((property) => property.name === 'operation');
@@ -36,6 +36,6 @@ test('compiled credential is bearer-only and checks a bounded endpoint', () => {
 	assert.equal(credential.properties[0].typeOptions.password, true);
 	assert.equal(credential.authenticate.properties.headers.Authorization, '=Bearer {{$credentials.apiKey}}');
 	assert.equal(credential.test.request.baseURL, 'https://getminds.ai/api/v1');
-	assert.equal(credential.test.request.url, '/panels');
+	assert.equal(credential.test.request.url, '/studies');
 	assert.deepEqual(credential.test.request.qs, { limit: 1, offset: 0 });
 });

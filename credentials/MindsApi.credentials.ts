@@ -39,7 +39,7 @@ export class MindsApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: 'https://getminds.ai/api/v1',
-			url: '/panels',
+			url: '/studies',
 			method: 'GET',
 			qs: { limit: 1, offset: 0 },
 		},

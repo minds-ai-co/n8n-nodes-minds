@@ -1,0 +1,72 @@
+{
+	"name": "Prepare a Minds research plan",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "manual-trigger",
+			"name": "Run manually",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"resource": "study",
+				"operation": "create",
+				"name": "n8n positioning review",
+				"audienceIds": "",
+				"isLinkSharingEnabled": false
+			},
+			"id": "create-study",
+			"name": "Create Study",
+			"type": "n8n-nodes-minds.minds",
+			"typeVersion": 1,
+			"position": [260, 0]
+		},
+		{
+			"parameters": {
+				"resource": "study",
+				"operation": "previewResearchPlan",
+				"studyId": "={{ $json.id }}",
+				"request": "Draft three questions about clarity, relevance, and credibility of the supplied concept. Do not run the study.",
+				"studyLocale": "en",
+				"sourceKind": "prompt",
+				"sourceLabel": "Product concept",
+				"sourceContent": "A reusable bottle with a replaceable filter for commuters."
+			},
+			"id": "preview-research-plan",
+			"name": "Preview Research Plan",
+			"type": "n8n-nodes-minds.minds",
+			"typeVersion": 1,
+			"position": [520, 0]
+		}
+	],
+	"connections": {
+		"Run manually": {
+			"main": [
+				[
+					{
+						"node": "Create Study",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create Study": {
+			"main": [
+				[
+					{
+						"node": "Preview Research Plan",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	}
+}
