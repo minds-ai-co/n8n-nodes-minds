@@ -1,6 +1,7 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*.*.*'
@@ -15,12 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Require a release tag matching the package
+        run: |
+          node -e 'const p = require("./package.json"); if (process.env.GITHUB_REF !== `refs/tags/v${p.version}`) throw new Error("Publish must run on the matching release tag")'
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-          cache: npm
+
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11.15.0
 
       - name: Install dependencies
         run: npm ci
@@ -29,6 +36,11 @@ jobs:
         run: npm run verify
 
       - name: Publish with provenance
+        # Authenticates through npm trusted publishing (GitHub OIDC); no token secret.
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Check published package
+        run: |
+          result=$(npx --yes @n8n/scan-community-package@0.32.0 n8n-nodes-minds)
+          printf '%s\n' "$result"
+          printf '%s\n' "$result" | grep -q 'passed security checks'
