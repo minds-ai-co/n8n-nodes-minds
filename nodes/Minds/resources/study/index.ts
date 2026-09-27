@@ -277,7 +277,7 @@ export const studyDescription: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				...previewResearchPlan,
-				sourceKind: ['document', 'other', 'prompt', 'questionnaire'],
+				sourceKind: ['prompt'],
 			},
 		},
 		routing: {
@@ -294,11 +294,11 @@ export const studyDescription: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'https://example.com/research-source',
-		description: 'Public HTTPS URL of the source',
+		description: 'Public HTTPS URL of the source. Optional for questionnaire and other sources.',
 		displayOptions: {
 			show: {
 				...previewResearchPlan,
-				sourceKind: ['image', 'video', 'website'],
+				sourceKind: ['document', 'image', 'other', 'questionnaire', 'video', 'website'],
 			},
 		},
 		routing: {
@@ -306,6 +306,7 @@ export const studyDescription: INodeProperties[] = [
 				type: 'body',
 				property: 'source.url',
 				propertyInDotNotation: true,
+				value: '={{ $value || undefined }}',
 			},
 		},
 	},
