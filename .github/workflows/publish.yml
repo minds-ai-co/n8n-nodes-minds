@@ -44,6 +44,12 @@ jobs:
 
       - name: Check published package
         run: |
-          result=$(npx --yes @n8n/scan-community-package@0.32.0 n8n-nodes-minds)
+          version=$(node -p 'require("./package.json").version')
+          # The registry serves provenance a few minutes after publishing.
+          for attempt in $(seq 1 40); do
+            curl -fsS "https://registry.npmjs.org/-/npm/v1/attestations/n8n-nodes-minds@${version}" >/dev/null && break
+            sleep 15
+          done
+          result=$(npx --yes @n8n/scan-community-package@0.32.0 "n8n-nodes-minds@${version}")
           printf '%s\n' "$result"
-          printf '%s\n' "$result" | grep -q 'passed security checks'
+          printf '%s\n' "$result" | grep -q 'has passed all security checks'
