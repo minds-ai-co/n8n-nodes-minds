@@ -12,8 +12,59 @@ const contract = JSON.parse(
 	await readFile(new URL('./fixtures/studies-openapi.json', import.meta.url)),
 );
 const operations = properties.find((property) => property.name === 'operation').options;
-const { Expression } = require('n8n-workflow');
+const { Expression, NodeHelpers } = require('n8n-workflow');
 const expression = new Expression('UTC');
+
+function previewSourceBody(parameters) {
+	const body = {};
+	for (const property of properties) {
+		const send = property.routing?.send;
+		if (send?.type !== 'body' || !send.property.startsWith('source.')) continue;
+		if (!NodeHelpers.displayParameter(parameters, property, null, description)) continue;
+		const value = parameters[property.name] ?? property.default;
+		const resolved = send.value === undefined
+			? value
+			: expression.resolveSimpleParameterValue(send.value, { $value: value, $parameter: parameters });
+		if (send.propertyInDotNotation) {
+			body.source ??= {};
+			body.source[send.property.slice('source.'.length)] = resolved;
+		} else {
+			body[send.property] = resolved;
+		}
+	}
+	return JSON.parse(JSON.stringify(body));
+}
+
+// Contract: webapp/server/utils/research/plan-preview-contract.ts sourceSchema.
+// Only prompts accept content; document/image/video/website require a URL.
+const sourceUrl = 'https://example.com/research-source';
+const sourceContent = 'Respondent-visible research stimulus';
+for (const [kind, url, expectedFields] of [
+	['prompt', sourceUrl, { content: sourceContent }],
+	['document', sourceUrl, { url: sourceUrl }],
+	['image', sourceUrl, { url: sourceUrl }],
+	['video', sourceUrl, { url: sourceUrl }],
+	['website', sourceUrl, { url: sourceUrl }],
+	['questionnaire', sourceUrl, { url: sourceUrl }],
+	['other', sourceUrl, { url: sourceUrl }],
+	['questionnaire', '', {}],
+	['other', '', {}],
+]) {
+	test(`preview ${kind} source ${url ? 'with' : 'without'} URL matches the server contract`, () => {
+		const parameters = {
+			resource: 'study',
+			operation: 'previewResearchPlan',
+			sourceKind: kind,
+			sourceLabel: 'Research stimulus',
+			// Retained values from switching kinds must not leak into the request.
+			sourceContent,
+			sourceUrl: url,
+		};
+		assert.deepEqual(previewSourceBody(parameters), {
+			source: { kind, label: parameters.sourceLabel, ...expectedFields },
+		});
+	});
+}
 
 test('n8n expressions preserve audience arrays and keep study IDs inside one path segment', () => {
 	const audienceIds = properties.find((property) => property.name === 'audienceIds').routing.send
