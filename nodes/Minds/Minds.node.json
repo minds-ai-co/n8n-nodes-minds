@@ -1,8 +1,8 @@
 {
-  "node": "n8n-nodes-minds",
+  "node": "n8n-nodes-minds.minds",
   "nodeVersion": "1.0",
   "codexVersion": "1.0",
-  "categories": ["Marketing", "Productivity"],
+  "categories": ["Marketing & Content", "Productivity"],
   "resources": {
     "credentialDocumentation": [
       {
