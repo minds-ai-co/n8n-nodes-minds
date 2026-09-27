@@ -36,8 +36,11 @@ jobs:
         run: npm run verify
 
       - name: Publish with provenance
-        # Authenticates through npm trusted publishing (GitHub OIDC); no token secret.
+        # npm prefers trusted publishing (GitHub OIDC) and falls back to the
+        # package-scoped token until the trusted publisher is configured.
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Check published package
         run: |
