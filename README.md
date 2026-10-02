@@ -18,6 +18,10 @@ The first release exposes five bounded operations for the `Study` resource:
 
 The node intentionally does not delete data or execute a study. Starting consequential research remains a separate, explicit human-confirmed step in Minds.
 
+## Optional settings
+
+New nodes use version 1.1. For **Create**, open **Additional Fields** to add **Audience IDs** or **Enable Link Sharing**. For **Preview Research Plan**, use **Additional Fields** for **Study Locale** and **Source Label**. Existing workflows saved with node version 1 retain their original parameter paths and behavior.
+
 ## Credentials
 
 1. Create a [Minds account](https://getminds.ai).
