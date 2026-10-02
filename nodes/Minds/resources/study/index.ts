@@ -118,32 +118,6 @@ export const studyDescription: INodeProperties[] = [
 		routing: { send: { type: 'body', property: 'name' } },
 	},
 	{
-		displayName: 'Audience IDs',
-		name: 'audienceIds',
-		type: 'string',
-		default: '',
-		placeholder: 'UUID, UUID',
-		description: 'Comma-separated IDs of existing Minds Audiences to attach',
-		displayOptions: { show: createStudy },
-		routing: {
-			send: {
-				type: 'body',
-				property: 'audienceIds',
-				value:
-					'={{ $value ? $value.split(",").map((id) => id.trim()).filter((id) => id.length > 0) : [] }}',
-			},
-		},
-	},
-	{
-		displayName: 'Enable Link Sharing',
-		name: 'isLinkSharingEnabled',
-		type: 'boolean',
-		default: false,
-		description: 'Whether to enable public link sharing for the Study and its attached Audiences',
-		displayOptions: { show: createStudy },
-		routing: { send: { type: 'body', property: 'isLinkSharingEnabled' } },
-	},
-	{
 		displayName: 'Study ID',
 		name: 'studyId',
 		type: 'string',
@@ -209,26 +183,6 @@ export const studyDescription: INodeProperties[] = [
 		routing: { send: { type: 'body', property: 'request' } },
 	},
 	{
-		displayName: 'Study Locale',
-		name: 'studyLocale',
-		type: 'options',
-		options: [
-			{ name: 'Arabic', value: 'ar' },
-			{ name: 'Chinese', value: 'zh' },
-			{ name: 'English', value: 'en' },
-			{ name: 'French', value: 'fr' },
-			{ name: 'German', value: 'de' },
-			{ name: 'Japanese', value: 'ja' },
-			{ name: 'Korean', value: 'ko' },
-			{ name: 'Spanish', value: 'es' },
-			{ name: 'Turkish', value: 'tr' },
-		],
-		default: 'en',
-		description: 'Language used for the plan and eventual study output',
-		displayOptions: { show: previewResearchPlan },
-		routing: { send: { type: 'body', property: 'studyLocale' } },
-	},
-	{
 		displayName: 'Source Kind',
 		name: 'sourceKind',
 		type: 'options',
@@ -248,21 +202,6 @@ export const studyDescription: INodeProperties[] = [
 			send: {
 				type: 'body',
 				property: 'source.kind',
-				propertyInDotNotation: true,
-			},
-		},
-	},
-	{
-		displayName: 'Source Label',
-		name: 'sourceLabel',
-		type: 'string',
-		default: 'Research stimulus',
-		description: 'Human-readable label for the source',
-		displayOptions: { show: previewResearchPlan },
-		routing: {
-			send: {
-				type: 'body',
-				property: 'source.label',
 				propertyInDotNotation: true,
 			},
 		},
@@ -309,6 +248,84 @@ export const studyDescription: INodeProperties[] = [
 				value: '={{ $value || undefined }}',
 			},
 		},
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { ...createStudy, '@version': [1.1] } },
+		options: [
+			{
+				displayName: 'Audience IDs',
+				name: 'audienceIds',
+				type: 'string',
+				default: '',
+				placeholder: 'UUID, UUID',
+				description: 'Comma-separated IDs of existing Minds Audiences to attach',
+				routing: {
+					send: {
+						type: 'body',
+						property: 'audienceIds',
+						value:
+							'={{ $value ? $value.split(",").map((id) => id.trim()).filter((id) => id.length > 0) : [] }}',
+					},
+				},
+			},
+			{
+				displayName: 'Enable Link Sharing',
+				name: 'isLinkSharingEnabled',
+				type: 'boolean',
+				default: false,
+				description:
+					'Whether to enable public link sharing for the Study and its attached Audiences',
+				routing: { send: { type: 'body', property: 'isLinkSharingEnabled' } },
+			},
+		],
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { ...previewResearchPlan, '@version': [1.1] } },
+		options: [
+			{
+				displayName: 'Source Label',
+				name: 'sourceLabel',
+				type: 'string',
+				default: 'Research stimulus',
+				description: 'Human-readable label for the source',
+				routing: {
+					send: {
+						type: 'body',
+						property: 'source.label',
+						propertyInDotNotation: true,
+					},
+				},
+			},
+			{
+				displayName: 'Study Locale',
+				name: 'studyLocale',
+				type: 'options',
+				options: [
+					{ name: 'Arabic', value: 'ar' },
+					{ name: 'Chinese', value: 'zh' },
+					{ name: 'English', value: 'en' },
+					{ name: 'French', value: 'fr' },
+					{ name: 'German', value: 'de' },
+					{ name: 'Japanese', value: 'ja' },
+					{ name: 'Korean', value: 'ko' },
+					{ name: 'Spanish', value: 'es' },
+					{ name: 'Turkish', value: 'tr' },
+				],
+				default: 'en',
+				description: 'Language used for the plan and eventual study output',
+				routing: { send: { type: 'body', property: 'studyLocale' } },
+			},
+		],
 	},
 ];
 

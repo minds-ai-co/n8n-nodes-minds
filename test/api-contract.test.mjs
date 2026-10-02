@@ -15,23 +15,37 @@ const operations = properties.find((property) => property.name === 'operation').
 const { Expression, NodeHelpers } = require('n8n-workflow');
 const expression = new Expression('UTC');
 
-function previewSourceBody(parameters) {
+function requestBody(parameters, typeVersion = 1) {
 	const body = {};
-	for (const property of properties) {
-		const send = property.routing?.send;
-		if (send?.type !== 'body' || !send.property.startsWith('source.')) continue;
-		if (!NodeHelpers.displayParameter(parameters, property, null, description)) continue;
-		const value = parameters[property.name] ?? property.default;
-		const resolved = send.value === undefined
-			? value
-			: expression.resolveSimpleParameterValue(send.value, { $value: value, $parameter: parameters });
-		if (send.propertyInDotNotation) {
-			body.source ??= {};
-			body.source[send.property.slice('source.'.length)] = resolved;
-		} else {
-			body[send.property] = resolved;
+	const node = { typeVersion };
+	function walk(fields, values) {
+		for (const property of fields) {
+			if (!NodeHelpers.displayParameter(values, property, node, description, parameters)) continue;
+			if (property.type === 'collection') {
+				const selected = values[property.name] ?? {};
+				walk(
+					property.options.filter((option) => Object.hasOwn(selected, option.name)),
+					selected,
+				);
+				continue;
+			}
+			const send = property.routing?.send;
+			if (send?.type !== 'body') continue;
+			const value = values[property.name] ?? property.default;
+			const resolved =
+				send.value === undefined
+					? value
+					: expression.resolveSimpleParameterValue(send.value, {
+							$value: value,
+							$parameter: parameters,
+						});
+			if (send.propertyInDotNotation) {
+				const [parent, child] = send.property.split('.');
+				(body[parent] ??= {})[child] = resolved;
+			} else body[send.property] = resolved;
 		}
 	}
+	walk(properties, parameters);
 	return JSON.parse(JSON.stringify(body));
 }
 
@@ -60,9 +74,19 @@ for (const [kind, url, expectedFields] of [
 			sourceContent,
 			sourceUrl: url,
 		};
-		assert.deepEqual(previewSourceBody(parameters), {
-			source: { kind, label: parameters.sourceLabel, ...expectedFields },
+		assert.deepEqual(requestBody(parameters).source, {
+			kind,
+			label: parameters.sourceLabel,
+			...expectedFields,
 		});
+		const current = {
+			...parameters,
+			request: 'Preview the source',
+			additionalFields: { sourceLabel: parameters.sourceLabel, studyLocale: 'de' },
+		};
+		delete current.sourceLabel;
+		assert.deepEqual(requestBody(current, 1.1).source, requestBody(parameters, 1).source);
+		assert.equal(requestBody(current, 1.1).studyLocale, 'de');
 	});
 }
 
@@ -163,5 +187,61 @@ test('example workflows use supported operations and parameters, with no embedde
 					name,
 				);
 		}
+	}
+});
+
+test('saved version-1 workflows and Additional Fields send the same optional create values', () => {
+	const previous = {
+		resource: 'study',
+		operation: 'create',
+		name: 'Preserved workflow',
+		audienceIds: ' a, b, , ',
+		isLinkSharingEnabled: true,
+	};
+	const current = {
+		resource: 'study',
+		operation: 'create',
+		name: previous.name,
+		additionalFields: { audienceIds: previous.audienceIds, isLinkSharingEnabled: true },
+	};
+	assert.deepEqual(requestBody(previous, 1), {
+		name: previous.name,
+		audienceIds: ['a', 'b'],
+		isLinkSharingEnabled: true,
+	});
+	assert.deepEqual(requestBody(current, 1.1), requestBody(previous, 1));
+	assert.deepEqual(requestBody({ ...current, additionalFields: {} }, 1.1), { name: previous.name });
+	// Stale top-level values must not override the newly selected collection.
+	assert.deepEqual(
+		requestBody({ ...current, audienceIds: 'stale', isLinkSharingEnabled: false }, 1.1),
+		requestBody(current, 1.1),
+	);
+});
+
+test('n8n parameter resolution retains stored values in both node versions', () => {
+	for (const typeVersion of [1, 1.1]) {
+		const optional = { sourceLabel: 'Saved label', studyLocale: 'de' };
+		const parameters = {
+			resource: 'study',
+			operation: 'previewResearchPlan',
+			studyId: 'existing-study',
+			request: 'Saved research request',
+			sourceKind: 'prompt',
+			sourceContent: 'Saved stimulus',
+			...(typeVersion === 1 ? optional : { additionalFields: optional }),
+		};
+		const resolved = NodeHelpers.getNodeParameters(
+			properties,
+			parameters,
+			true,
+			false,
+			{ typeVersion, parameters },
+			description,
+		);
+		assert.ok(resolved);
+		const body = requestBody(resolved, typeVersion);
+		assert.equal(body.source.label, optional.sourceLabel);
+		assert.equal(body.studyLocale, optional.studyLocale);
+		assert.equal(body.source.content, parameters.sourceContent);
 	}
 });

@@ -14,13 +14,15 @@
 				"resource": "study",
 				"operation": "create",
 				"name": "n8n positioning review",
-				"audienceIds": "",
-				"isLinkSharingEnabled": false
+				"additionalFields": {
+					"audienceIds": "",
+					"isLinkSharingEnabled": false
+				}
 			},
 			"id": "create-study",
 			"name": "Create Study",
 			"type": "n8n-nodes-minds.minds",
-			"typeVersion": 1,
+			"typeVersion": 1.1,
 			"position": [260, 0]
 		},
 		{
@@ -29,15 +31,17 @@
 				"operation": "previewResearchPlan",
 				"studyId": "={{ $json.id }}",
 				"request": "Draft three questions about clarity, relevance, and credibility of the supplied concept. Do not run the study.",
-				"studyLocale": "en",
 				"sourceKind": "prompt",
-				"sourceLabel": "Product concept",
-				"sourceContent": "A reusable bottle with a replaceable filter for commuters."
+				"sourceContent": "A reusable bottle with a replaceable filter for commuters.",
+				"additionalFields": {
+					"studyLocale": "en",
+					"sourceLabel": "Product concept"
+				}
 			},
 			"id": "preview-research-plan",
 			"name": "Preview Research Plan",
 			"type": "n8n-nodes-minds.minds",
-			"typeVersion": 1,
+			"typeVersion": 1.1,
 			"position": [520, 0]
 		}
 	],

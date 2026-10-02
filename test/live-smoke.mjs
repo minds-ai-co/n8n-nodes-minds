@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { Expression } = require('n8n-workflow');
+const { Expression, NodeHelpers } = require('n8n-workflow');
 const { Minds } = require('../dist/nodes/Minds/Minds.node.js');
 const { MindsApi } = require('../dist/credentials/MindsApi.credentials.js');
 const key = process.env.MINDS_API_KEY;
@@ -27,21 +27,33 @@ async function call(operationValue, overrides = {}) {
 		description.requestDefaults.baseURL + evaluate(operation.routing.request.url),
 	);
 	const body = {};
-	for (const property of properties) {
-		const show = property.displayOptions?.show ?? {};
-		if (!Object.entries(show).every(([key, values]) => values.includes(parameters[key]))) continue;
-		const send = property.routing?.send;
-		if (!send || !['body', 'query'].includes(send.type)) continue;
-		const value =
-			send.value === undefined
-				? parameters[property.name]
-				: evaluate(send.value, parameters[property.name]);
-		if (send.type === 'query') url.searchParams.set(send.property, String(value));
-		else if (send.propertyInDotNotation) {
-			const [parent, child] = send.property.split('.');
-			(body[parent] ??= {})[child] = value;
-		} else body[send.property] = value;
+	const typeVersion = 1.1;
+	function sendFields(fields, values) {
+		for (const property of fields) {
+			if (!NodeHelpers.displayParameter(values, property, { typeVersion }, description, parameters))
+				continue;
+			if (property.type === 'collection') {
+				const selected = values[property.name] ?? {};
+				sendFields(
+					property.options.filter((option) => Object.hasOwn(selected, option.name)),
+					selected,
+				);
+				continue;
+			}
+			const send = property.routing?.send;
+			if (!send || !['body', 'query'].includes(send.type)) continue;
+			const value =
+				send.value === undefined
+					? values[property.name]
+					: evaluate(send.value, values[property.name]);
+			if (send.type === 'query') url.searchParams.set(send.property, String(value));
+			else if (send.propertyInDotNotation) {
+				const [parent, child] = send.property.split('.');
+				(body[parent] ??= {})[child] = value;
+			} else body[send.property] = value;
+		}
 	}
+	sendFields(properties, parameters);
 	const authorization = expression.resolveSimpleParameterValue(
 		new MindsApi().authenticate.properties.headers.Authorization,
 		{ $credentials: { apiKey: key } },
@@ -64,7 +76,11 @@ try {
 	const studies = await call('getAll', { limit: 100 });
 	assert.ok(Array.isArray(studies));
 	let study = studies.find((study) => study.name === name);
-	if (!study) study = await call('create', { name, audienceIds: '', isLinkSharingEnabled: false });
+	if (!study)
+		study = await call('create', {
+			name,
+			additionalFields: { audienceIds: '', isLinkSharingEnabled: false },
+		});
 	else console.log("create: reusing this date's verification Study");
 	assert.equal(typeof study.id, 'string');
 	await call('get', { studyId: study.id });
@@ -74,7 +90,7 @@ try {
 		request:
 			'Draft exactly two open-ended questions about clarity and credibility of this concept. Do not execute research.',
 		sourceKind: 'prompt',
-		sourceLabel: 'Verification concept',
+		additionalFields: { sourceLabel: 'Verification concept', studyLocale: 'en' },
 		sourceContent: 'A reusable water bottle with a replaceable filter for commuters.',
 	});
 	console.log(

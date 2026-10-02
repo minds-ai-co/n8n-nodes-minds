@@ -19,7 +19,7 @@
 			"id": "list-studies",
 			"name": "List Studies",
 			"type": "n8n-nodes-minds.minds",
-			"typeVersion": 1,
+			"typeVersion": 1.1,
 			"position": [260, 0]
 		}
 	],

@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-minds",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official n8n community node for reviewable Minds research workflows.",
   "license": "MIT",
   "homepage": "https://getminds.ai",

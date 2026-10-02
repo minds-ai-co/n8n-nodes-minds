@@ -1,5 +1,6 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { studyDescription } from './resources/study';
+import { legacyStudyOptionalFields } from './resources/study/legacy';
 
 export class Minds implements INodeType {
 	description: INodeTypeDescription = {
@@ -7,7 +8,8 @@ export class Minds implements INodeType {
 		name: 'minds',
 		icon: { light: 'file:minds.svg', dark: 'file:minds.dark.svg' },
 		group: ['transform'],
-		version: 1,
+		version: [1, 1.1],
+		defaultVersion: 1.1,
 		subtitle: '={{$parameter["operation"]}}',
 		description: 'Plan and inspect reviewable market research with Minds',
 		defaults: {
@@ -34,6 +36,7 @@ export class Minds implements INodeType {
 				default: 'study',
 			},
 			...studyDescription,
+			...legacyStudyOptionalFields,
 		],
 	};
 }
